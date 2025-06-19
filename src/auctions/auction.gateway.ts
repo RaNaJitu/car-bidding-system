@@ -50,7 +50,7 @@ export class AuctionGateway {
   }
 
   // 🔹 Broadcast auction ended event to specific room
-  broadcastAuctionEnded(auctionId: string, winnerId: number | null, amount: number) {
+  broadcastAuctionEnded(auctionId: string, winnerId: string | null, amount: number) {
     this.server.to(`auction_${auctionId}`).emit('auction-ended', {
       auctionId,
       winnerId,

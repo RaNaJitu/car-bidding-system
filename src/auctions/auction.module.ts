@@ -22,12 +22,14 @@ import { BidModule } from '../bids/bid.module';
 import { AuctionGateway } from './auction.gateway';
 import { RedisModule } from 'src/redis/redis.module';
 import { JwtModule } from '@nestjs/jwt'; 
+import { RabbitMQModule } from 'src/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
     PrismaModule,
     BidModule,
     RedisModule,
+    RabbitMQModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET, // keep consistent with auth module
       signOptions: { expiresIn: '1h' },
