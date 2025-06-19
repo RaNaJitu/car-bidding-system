@@ -1,3 +1,16 @@
+-- CreateEnum
+CREATE TYPE "AuctionStatus" AS ENUM ('PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED');
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "userName" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateTable
 CREATE TABLE "Auction" (
     "id" TEXT NOT NULL,
@@ -7,7 +20,7 @@ CREATE TABLE "Auction" (
     "startingBid" DOUBLE PRECISION NOT NULL,
     "currentHighest" DOUBLE PRECISION NOT NULL,
     "winnerId" TEXT,
-    "status" TEXT NOT NULL,
+    "status" "AuctionStatus" NOT NULL,
 
     CONSTRAINT "Auction_pkey" PRIMARY KEY ("id")
 );
@@ -22,6 +35,12 @@ CREATE TABLE "Bid" (
 
     CONSTRAINT "Bid_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_userName_key" ON "User"("userName");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- AddForeignKey
 ALTER TABLE "Bid" ADD CONSTRAINT "Bid_auctionId_fkey" FOREIGN KEY ("auctionId") REFERENCES "Auction"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

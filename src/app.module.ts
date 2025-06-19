@@ -7,10 +7,12 @@ import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RabbitMQService } from './rabbitmq/rabbitmq.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
   imports: [
+    AuthModule,
     AuctionModule,
     BidModule,
     UserModule,

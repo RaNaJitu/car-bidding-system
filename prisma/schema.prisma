@@ -23,8 +23,9 @@ enum AuctionStatus {
 
 model User {
   id                    Int                       @id @default(autoincrement())
-  userName              String
+  userName              String                    @unique
   email                 String                    @unique
+  password              String
   bids                  Bid[]
 }
 

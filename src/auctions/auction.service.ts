@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuctionStatus } from '@prisma/client';
 import { Cron } from '@nestjs/schedule';
 import { AuctionGateway } from './auction.gateway';
+import * as bcrypt from 'bcrypt';
+
 
 
 @Injectable()
@@ -126,4 +128,22 @@ export class AuctionService {
     take: top,
   });
 }
+
+
+async validateUser(userName: string, password: string) {
+  const user = await this.prisma.user.findUnique({ where: { userName } });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new Error('Invalid credentials');
+  }
+
+  return user; // or return JWT, etc.
+}
+
 }
