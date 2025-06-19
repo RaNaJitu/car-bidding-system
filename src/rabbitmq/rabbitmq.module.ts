@@ -6,9 +6,10 @@ import { AuditConsumer } from './consumers/audit.consumer';
 import { AuctionGateway } from '../auctions/auction.gateway';
 import { NotificationConsumer } from './consumers/notification.consumer';
 import { BidGateway } from 'src/bids/bid.gateway';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, RedisModule],
   providers: [
     RabbitMQService, 
     DLQConsumerService,

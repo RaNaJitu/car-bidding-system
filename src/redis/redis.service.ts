@@ -74,4 +74,29 @@ export class RedisService implements OnModuleDestroy {
       this.subscriber.quit(),
     ]);
   }
+
+
+  // ✅ Add user to auction room set
+  async addUserToAuction(auctionId: string, userId: string) {
+    const key = `auction:${auctionId}:users`;
+    await this.publisher.sadd(key, userId);
+  }
+
+  // ✅ Remove user from auction room set
+  async removeUserFromAuction(auctionId: string, userId: string) {
+    const key = `auction:${auctionId}:users`;
+    await this.publisher.srem(key, userId);
+  }
+
+  // ✅ Get all users in auction room set
+  async getAuctionUsers(auctionId: string): Promise<string[]> {
+    const key = `auction:${auctionId}:users`;
+    return await this.publisher.smembers(key);
+  }
+
+  // ✅ Optional: Count active users
+  async countAuctionUsers(auctionId: string): Promise<number> {
+    const key = `auction:${auctionId}:users`;
+    return await this.publisher.scard(key);
+  }
 }

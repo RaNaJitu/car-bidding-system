@@ -1,0 +1,113 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Auction API",
+    "description": "Car Auction System",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Login User",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userName": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["userName", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JWT Token"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/auctions": {
+      "get": {
+        "summary": "Get All Auctions",
+        "responses": {
+          "200": {
+            "description": "List of auctions"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new auction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "carId": { "type": "string" },
+                  "startTime": { "type": "string", "format": "date-time" },
+                  "endTime": { "type": "string", "format": "date-time" },
+                  "startingBid": { "type": "number" }
+                },
+                "required": ["carId", "startTime", "endTime", "startingBid"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Auction created"
+          }
+        }
+      }
+    },
+    "/bids": {
+      "post": {
+        "summary": "Place a bid",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "auctionId": { "type": "string" },
+                  "amount": { "type": "number" }
+                },
+                "required": ["auctionId", "amount"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bid placed"
+          },
+          "400": {
+            "description": "Invalid bid"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ]
+}

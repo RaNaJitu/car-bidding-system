@@ -5,6 +5,6 @@ import { AuctionGateway } from '../auctions/auction.gateway';
 
 @Module({
   providers: [RedisService, RedisSubscriberService, AuctionGateway],
-  exports: [RedisService],
+  exports: [RedisService, RedisSubscriberService],
 })
 export class RedisModule {}

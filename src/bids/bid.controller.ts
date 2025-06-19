@@ -2,6 +2,7 @@ import { Controller, Post, Body, HttpException, HttpStatus, UseGuards } from '@n
 import { BidService } from './bid.service';
 import { ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtBlacklistGuard } from 'src/auth/jwt-blacklist.guard';
+// import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Bids')
 @ApiBearerAuth('access-token')
@@ -20,6 +21,7 @@ export class BidController {
     },
     required: ['auctionId', 'userId', 'amount']
   }})
+  // @Throttle(3, 10)
   async placeBid(
     @Body() body: { auctionId: string; userId: number; amount: number },
   ) {

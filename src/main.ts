@@ -7,10 +7,16 @@ import { Reflector } from '@nestjs/core';
 import { JwtBlacklistGuard } from './auth/jwt-blacklist.guard';
 import { JwtService } from '@nestjs/jwt';
 import { RedisService } from './redis/redis.service';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  // app.enableCors();
+
+  app.enableCors({
+  origin: '*',
+  credentials: true,
+});
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -45,10 +51,7 @@ const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
   // app.useGlobalGuards(new JwtAuthGuard());
 
-  app.enableCors({
-  origin: '*',
-  credentials: true,
-});
+  
 
 // If Swagger UI loads in browser but tokens aren't sent, you might need to ensure CORS headers are correctly set:
   SwaggerModule.setup('api', app, document);
@@ -61,7 +64,8 @@ const reflector = app.get(Reflector);
 
   app.useGlobalGuards(
     new JwtAuthGuard(reflector),
-    new JwtBlacklistGuard(jwtService, redisService, reflector)
+    new JwtBlacklistGuard(jwtService, redisService, reflector),
+    // app.get(ThrottlerGuard),
   );
 
   await app.listen(3000);

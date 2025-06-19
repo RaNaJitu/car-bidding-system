@@ -59,6 +59,43 @@ cd car-bidding-system
 npm install
 
 
+
+---
+
+## ✅ 2. `docs/` Folder
+
+Organize deeper technical documentation here.
+
+### Files to include:
+
+- `docs/api-swagger.json` – Swagger JSON generated from your app
+- `docs/postman_collection.json` – Postman collection ()
+- `docs/architecture.md` – Overview of how components interact
+- `docs/modules.md` – Summary of important NestJS modules (e.g., `AuctionModule`, `BidModule`)
+- `docs/security.md` – Notes on rate limiting, throttling, Redis session handling
+
+---
+
+### Example: `docs/architecture.md`
+
+```md
+# ⚙️ System Architecture
+
+## Components
+
+- **AuctionService** – Manages auction lifecycle (create, status update)
+- **BidService** – Validates & processes bids
+- **AuctionGateway** – WebSocket events for real-time updates
+- **RedisService** – Handles pub/sub and session tracking
+- **RabbitMQService** – Publishes notifications and audits
+
+## Auction Flow
+
+1. Client joins auction via WS → `join-auction`
+2. Bid placed (REST) → validated & stored → broadcast via WS and Redis
+3. Scheduler marks auction `COMPLETED` → winner determined → WS + queue + DB update
+
+
 📁 2. Configure Environment
 
 Create a .env file in the root with the following content:

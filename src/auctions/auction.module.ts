@@ -37,7 +37,7 @@ import { RabbitMQModule } from 'src/rabbitmq/rabbitmq.module';
   ],
   controllers: [AuctionController],
   providers: [AuctionService, AuctionGateway],
-  exports: [AuctionService],
+  exports: [AuctionService, AuctionGateway],
 })
 export class AuctionModule {}
 

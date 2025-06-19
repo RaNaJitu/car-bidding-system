@@ -10,6 +10,7 @@ import { RabbitMQService } from './rabbitmq/rabbitmq.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { JwtBlacklistGuard } from './auth/jwt-blacklist.guard';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -21,9 +22,26 @@ import { JwtBlacklistGuard } from './auth/jwt-blacklist.guard';
     RabbitMQModule,
     PrismaModule,
     ScheduleModule.forRoot(),
+  //   ThrottlerModule.forRoot({
+  //     ttl: 60,
+  //     // limit: 10,
+  //   }),
+  // ],
+  //   ThrottlerModule.forRoot({
+  //     throttlers: [
+  //       {
+  //         limit: 10,
+  //         ttl: 60,
+  //       },
+  //     ],
+  //   }),
   ],
   providers: [
     RabbitMQService,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard,
+    // },
     {
       provide: APP_GUARD,
       useClass: JwtBlacklistGuard,
