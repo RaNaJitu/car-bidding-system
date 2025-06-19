@@ -1,8 +1,11 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { BidService } from './bid.service';
-import { ApiTags, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtBlacklistGuard } from 'src/auth/jwt-blacklist.guard';
 
-@ApiTags('Bids') // Group routes in Swagger UI
+@ApiTags('Bids')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtBlacklistGuard)
 @Controller('bids')
 export class BidController {
   constructor(private readonly bidService: BidService) {}

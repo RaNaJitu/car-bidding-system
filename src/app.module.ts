@@ -1,4 +1,5 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AuctionModule } from './auctions/auction.module';
 import { BidModule } from './bids/bid.module';
 import { UserModule } from './users/user.module';
@@ -8,7 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RabbitMQService } from './rabbitmq/rabbitmq.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
-
+import { JwtBlacklistGuard } from './auth/jwt-blacklist.guard';
 
 @Module({
   imports: [
@@ -21,6 +22,12 @@ import { AuthModule } from './auth/auth.module';
     PrismaModule,
     ScheduleModule.forRoot(),
   ],
-  providers: [RabbitMQService], 
+  providers: [
+    RabbitMQService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtBlacklistGuard,
+    },
+  ],
 })
 export class AppModule {}

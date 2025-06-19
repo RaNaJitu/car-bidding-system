@@ -34,9 +34,20 @@ import { BidGateway } from './bid.gateway';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from '../redis/redis.module';
 import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [PrismaModule, RedisModule, RabbitMQModule],
+  imports: [
+    PrismaModule,
+    RedisModule,
+    RabbitMQModule,
+    AuthModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET, // keep consistent with auth module
+      signOptions: { expiresIn: "1h" },
+    }),
+  ],
   controllers: [BidController],
   providers: [BidService, BidGateway],
   exports: [BidService], // ✅ This line is REQUIRED

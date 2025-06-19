@@ -1,84 +1,12 @@
-// import { NestFactory } from '@nestjs/core';
-// import { AppModule } from './app.module';
-
-// async function bootstrap() {
-//   const app = await NestFactory.create(AppModule);
-
-//   // Optional: set global prefix for all routes
-//   app.setGlobalPrefix('api');
-
-//   // Optional: enable CORS if you are accessing API from frontend or other services
-//   app.enableCors();
-
-//   // Start listening on port 3000 or from env variable
-//   const port = process.env.PORT || 3000;
-//   await app.listen(port);
-//   console.log(`Application is running on: http://localhost:${port}`);
-// }
-// bootstrap();
-
-
-// import { NestFactory } from '@nestjs/core';
-// import { AppModule } from './app.module';
-
-// async function bootstrap() {
-//   const app = await NestFactory.create(AppModule);
-//   await app.listen(3000, ()=>{
-//     console.log(`server is srated port: ${3000}`)
-//   });
-// }
-// bootstrap();
-
-
-
-
-// import { NestFactory } from '@nestjs/core';
-// import { AppModule } from './app.module';
-// import { RoutesResolver } from '@nestjs/core/router/routes-resolver';
-// import { ModuleRef } from '@nestjs/core';
-// import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-
-// async function bootstrap() {
-//   const app = await NestFactory.create(AppModule);
-//   app.enableCors();
-
-  
-//   await app.listen(3000);
-
-//   console.log(`🚀 Server running on http://localhost:3000`);
-
-//   // Log all registered routes using RoutesResolver
-//   const moduleRef = app.select(AppModule);
-//   const routesResolver = moduleRef.get(RoutesResolver, { strict: false });
-
-//   const routerExplorer = (routesResolver as any).routerExplorer;
-//   const path = ''; // Base path
-//   const appRoutes = routerExplorer.explore(AppModule, moduleRef, path);
-
-//   console.log('📚 Registered routes:');
-//   for (const route of appRoutes) {
-//     console.log(`${route.requestMethod.toUpperCase()} ${route.path}`);
-//   }
-
-//   const config = new DocumentBuilder()
-//   .setTitle('Car Bidding API')
-//   .setDescription('Live bidding system')
-//   .setVersion('1.0')
-//   .build();
-
-//   const document = SwaggerModule.createDocument(app, config);
-//   SwaggerModule.setup('docs', app, document);
-// }
-
-// bootstrap();
-
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt.guard';
 import { Reflector } from '@nestjs/core';
+import { JwtBlacklistGuard } from './auth/jwt-blacklist.guard';
+import { JwtService } from '@nestjs/jwt';
+import { RedisService } from './redis/redis.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -94,31 +22,50 @@ async function bootstrap() {
 
   // ✅ Swagger config
   const config = new DocumentBuilder()
-    .setTitle('Car Bidding System')
-    .setDescription('API documentation for live car auction bidding system')
-    .setVersion('1.0')
-    .build();
+  .setTitle('Auction API')
+  .setDescription('Car Auction System')
+  .setVersion('1.0')
+  .addBearerAuth(
+    {
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      name: 'Authorization',
+      in: 'header',
+    },
+    'access-token',
+  )
+  .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('api', app, document);
 
 app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
-  
+  // app.useGlobalGuards(new JwtAuthGuard());
+
+  app.enableCors({
+  origin: '*',
+  credentials: true,
+});
+
+// If Swagger UI loads in browser but tokens aren't sent, you might need to ensure CORS headers are correctly set:
+  SwaggerModule.setup('api', app, document);
+
+
+  // app.useGlobalGuards(app.get(JwtBlacklistGuard));
+//  const reflector = app.get(Reflector);
+  const jwtService = app.get(JwtService);
+  const redisService = app.get(RedisService);
+
+  app.useGlobalGuards(
+    new JwtAuthGuard(reflector),
+    new JwtBlacklistGuard(jwtService, redisService, reflector)
+  );
 
   await app.listen(3000);
   console.log(`🚀 Server running at http://localhost:3000`);
-
-
-  
-
-  // // ✅ Manually log known routes (safe and simple)
-  // console.log(`📚 Manually documented routes:`);
-  // console.log(`GET /auctions/:id/highestBid`);
-  // console.log(`POST /bids`);
-  // console.log(`GET /users`);
-  // console.log(`WebSocket: connect → joinAuction → bidUpdate`);
 }
 bootstrap();
 

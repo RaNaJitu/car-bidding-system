@@ -2,7 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsDateString, IsNumber } from 'class-validator';
 
 export class CreateAuctionDto {
-  @ApiProperty({ example: 'CAR123', description: 'Car ID being auctioned' })
+    
+  @ApiProperty({ example: 'CAR999', description: 'CAR999' })
   @IsString()
   carId!: string;
 

@@ -20,11 +20,18 @@ import { AuctionService } from './auction.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { BidModule } from '../bids/bid.module';
 import { AuctionGateway } from './auction.gateway';
+import { RedisModule } from 'src/redis/redis.module';
+import { JwtModule } from '@nestjs/jwt'; 
 
 @Module({
   imports: [
     PrismaModule,
-    BidModule
+    BidModule,
+    RedisModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET, // keep consistent with auth module
+      signOptions: { expiresIn: '1h' },
+    }),
   ],
   controllers: [AuctionController],
   providers: [AuctionService, AuctionGateway],
