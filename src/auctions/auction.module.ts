@@ -14,7 +14,7 @@
 // export class AuctionModule {}
 
 
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuctionController } from './auction.controller';
 import { AuctionService } from './auction.service';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -27,8 +27,9 @@ import { RabbitMQModule } from 'src/rabbitmq/rabbitmq.module';
 @Module({
   imports: [
     PrismaModule,
-    BidModule,
+    // BidModule,
     RedisModule,
+    forwardRef(() => BidModule),
     RabbitMQModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET, // keep consistent with auth module
