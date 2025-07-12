@@ -27,6 +27,7 @@ model User {
   email                 String                    @unique
   password              String
   bids                  Bid[]
+  auction               Auction[]
 }
 
 model Auction {
@@ -36,9 +37,10 @@ model Auction {
   endTime               DateTime
   startingBid           Float
   currentHighest        Float
-  winnerId              String?
+  winnerId              Int?
   status                AuctionStatus
   bids                  Bid[]
+  user                  User?                     @relation(fields: [winnerId], references: [id])
 }
 
 

@@ -68,8 +68,8 @@ const reflector = app.get(Reflector);
     // app.get(ThrottlerGuard),
   );
 
-  await app.listen(3000);
-  console.log(`🚀 Server running at http://localhost:3000`);
+  await app.listen(8000);
+  console.log(`🚀 Server running at http://localhost:8000`);
 }
 bootstrap();
 

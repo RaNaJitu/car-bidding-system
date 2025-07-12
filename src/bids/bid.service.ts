@@ -355,45 +355,114 @@ export class BidService {
     this.redisPublisher = this.redisService.getPublisher();
   }
 
+  // async placeBid(auctionId: string, userId: number, amount: number) {
+  //   const auction = await this.prisma.auction.findUnique({
+  //     where: { id: auctionId },
+  //   });
+
+  //   if (!auction || auction.status !== 'ACTIVE') {
+  //     throw new Error('Cannot place bid. Auction is not active.');
+  //   }
+
+  //   const redisKey = `auction:${auctionId}:highestBid`;
+  //   const maxRetries = 5;
+  //   let attempts = 0;
+
+  //   while (attempts < maxRetries) {
+  //     attempts++;
+  //     await this.redisPublisher.watch(redisKey);
+  //     const currentHighestBid = await this.redisPublisher.get(redisKey);
+  //     const current = currentHighestBid ? parseFloat(currentHighestBid) : 0;
+
+  //     if (amount <= current) {
+  //       await this.redisPublisher.unwatch();
+  //       throw new Error(`Bid must be higher than ${currentHighestBid} bid`);
+  //     }
+
+  //     const multi = this.redisPublisher.multi();
+  //     multi.set(redisKey, amount.toString());
+
+  //     const execResult = await multi.exec();
+
+  //     if (execResult === null) {
+  //       // Conflict detected, retry after small delay
+  //       await delay(200); // retry delay with jitter can be added if you want
+  //       continue;
+  //     }
+
+  //     // Success - publish bid event and notify clients
+  //     await this.rabbitMQService.publishBid({ auctionId, userId, amount });
+
+  //     // Optional: publish notifications & audit logs if you have those methods
+  //     await this.rabbitMQService.publishNotification({ auctionId, userId, amount });
+  //     await this.rabbitMQService.publishAuditLog({
+  //       type: 'BID_PLACED',
+  //       auctionId,
+  //       userId,
+  //       amount,
+  //     });
+
+  //     this.bidGateway.sendBidUpdate(auctionId, { userId, amount });
+
+  //     // Publish Redis pub/sub message for syncing
+  //     await this.redisPublisher.publish(
+  //       `auction:${auctionId}:highestBid`,
+  //       JSON.stringify({ userId, amount }),
+  //     );
+
+  //     return { status: 'success', auctionId, userId, amount };
+  //   }
+
+  //   throw new Error('Bid conflict detected. Please try again.');
+  // }
+
+
+
+
+  // Optional retry with exponential backoff
+  
+
   async placeBid(auctionId: string, userId: number, amount: number) {
     const auction = await this.prisma.auction.findUnique({
       where: { id: auctionId },
     });
-
+  
     if (!auction || auction.status !== 'ACTIVE') {
       throw new Error('Cannot place bid. Auction is not active.');
     }
 
+    if (amount <= auction.startingBid) {
+      throw new Error(`Cannot place bid. Auction start from ${auction.startingBid}.`);
+    }
+  
     const redisKey = `auction:${auctionId}:highestBid`;
     const maxRetries = 5;
     let attempts = 0;
-
+  
     while (attempts < maxRetries) {
       attempts++;
       await this.redisPublisher.watch(redisKey);
       const currentHighestBid = await this.redisPublisher.get(redisKey);
       const current = currentHighestBid ? parseFloat(currentHighestBid) : 0;
-
+  
       if (amount <= current) {
         await this.redisPublisher.unwatch();
-        throw new Error('Bid must be higher than current highest bid');
+        throw new Error(`Bid must be higher than current highest bid of Rs ${current}`);
       }
-
+  
       const multi = this.redisPublisher.multi();
       multi.set(redisKey, amount.toString());
-
+  
       const execResult = await multi.exec();
-
+  
       if (execResult === null) {
         // Conflict detected, retry after small delay
-        await delay(200); // retry delay with jitter can be added if you want
+        await delay(200);
         continue;
       }
-
+  
       // Success - publish bid event and notify clients
       await this.rabbitMQService.publishBid({ auctionId, userId, amount });
-
-      // Optional: publish notifications & audit logs if you have those methods
       await this.rabbitMQService.publishNotification({ auctionId, userId, amount });
       await this.rabbitMQService.publishAuditLog({
         type: 'BID_PLACED',
@@ -401,22 +470,30 @@ export class BidService {
         userId,
         amount,
       });
+  
+      // Broadcast bid update to all clients in auction room
+      this.bidGateway.server.to(auctionId).emit('bidUpdate', {
+        userId,
+        amount,
+      });
 
-      this.bidGateway.sendBidUpdate(auctionId, { userId, amount });
-
-      // Publish Redis pub/sub message for syncing
+      
+      const bidUserCount = await this.redisService.countBidUsers(auctionId);
+      console.log("==LOG== ~ BidService ~ placeBid ~ bidUserCount:", bidUserCount)
+      await this.redisService.addBidUserToAuction(auctionId, Number(bidUserCount + 1));
+  
+      // Publish Redis pub/sub message for syncing other nodes if any
       await this.redisPublisher.publish(
         `auction:${auctionId}:highestBid`,
         JSON.stringify({ userId, amount }),
       );
-
+  
       return { status: 'success', auctionId, userId, amount };
     }
-
+  
     throw new Error('Bid conflict detected. Please try again.');
   }
-
-  // Optional retry with exponential backoff
+  
   async placeBidWithRetry(
     auctionId: string,
     userId: number,

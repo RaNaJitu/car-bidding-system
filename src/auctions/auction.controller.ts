@@ -9,6 +9,7 @@ import {
   BadRequestException,
   NotFoundException,
   Query,
+  Request,
 } from "@nestjs/common";
 import { BidService } from "src/bids/bid.service";
 import { AuctionService } from "./auction.service";
@@ -53,7 +54,8 @@ export class AuctionController {
   @Get()
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get all auctions with bids' })
-  async getAll() {
+  async getAll(@Request() req:any) {
+    const { userId, userName } = req.user;
     return await this.auctionService.getAllAuctions();
   }
 
@@ -100,10 +102,10 @@ async getAuctionWinner(@Param('id') auctionId: string) {
   };
 }
 
-@Get(':auctionId/bids')
+@Get(':auctionId/')
 @ApiBearerAuth('access-token')
   async getBidHistory(@Param('auctionId') auctionId: string) {
-    return this.auctionService.getAuctionBids(auctionId);
+    return this.auctionService.getAuctionById(auctionId);
   }
 
 

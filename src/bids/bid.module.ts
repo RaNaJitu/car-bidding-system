@@ -27,7 +27,7 @@
 // export class BidModule {}
 
 
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BidService } from './bid.service';
 import { BidController } from './bid.controller';
 import { BidGateway } from './bid.gateway';
@@ -40,7 +40,8 @@ import { JwtModule } from '@nestjs/jwt';
 @Module({
   imports: [
     PrismaModule,
-    RedisModule,
+    // RedisModule,
+    forwardRef(() => RedisModule),
     RabbitMQModule,
     AuthModule,
     JwtModule.register({

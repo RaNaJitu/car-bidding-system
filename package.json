@@ -4,7 +4,8 @@
     "start": "ts-node -r tsconfig-paths/register src/main.ts",
     "start:dev": "nodemon --watch src --ext ts --exec ts-node -r tsconfig-paths/register src/main.ts",
     "start:cluster": "ts-node -r tsconfig-paths/register src/main-cluster.ts",
-    "sync-db": "prisma db push && prisma generate"
+    "sync-db": "prisma db push && prisma generate",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@types/node": "^24.0.3",

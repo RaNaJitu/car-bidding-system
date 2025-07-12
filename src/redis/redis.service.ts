@@ -99,4 +99,14 @@ export class RedisService implements OnModuleDestroy {
     const key = `auction:${auctionId}:users`;
     return await this.publisher.scard(key);
   }
+
+  async addBidUserToAuction(auctionId: string, userCount: number) {
+    const key = `auction:${auctionId}:bidUsers`;
+    await this.publisher.sadd(key, userCount);
+  }
+
+  async countBidUsers(auctionId: string): Promise<number> {
+    const key = `auction:${auctionId}:bidUsers`;
+    return await this.publisher.scard(key);
+  }
 }

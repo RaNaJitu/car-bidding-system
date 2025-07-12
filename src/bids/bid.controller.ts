@@ -1,7 +1,8 @@
-import { Controller, Post, Body, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, UseGuards, Request  } from '@nestjs/common';
 import { BidService } from './bid.service';
 import { ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtBlacklistGuard } from 'src/auth/jwt-blacklist.guard';
+import { JwtAuthGuard } from 'src/auth/jwt.guard';
 // import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Bids')
@@ -21,11 +22,17 @@ export class BidController {
     },
     required: ['auctionId', 'userId', 'amount']
   }})
-  // @Throttle(3, 10)
+    // @Throttle(3, 10)
+    @UseGuards(JwtAuthGuard)
   async placeBid(
+    @Request() req,
     @Body() body: { auctionId: string; userId: number; amount: number },
   ) {
-    const { auctionId, userId, amount } = body;
+    const user = req.sub;
+    console.log("==LOG== authorization:", req.authorization)
+    console.log("==LOG== user:", req.user)
+    const { userId, userName } = req.user;
+    const { auctionId, amount } = body;
     console.log('Incoming Bid:---->', body);
 
     try {

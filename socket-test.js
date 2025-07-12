@@ -4,7 +4,7 @@ const socket = io("http://localhost:3000", {
   transports: ["websocket"],
 });
 
-const auctionId = "4f92b1f5-ca5f-42a2-9d7d-7887a82c047c";
+const auctionId = "fea224db-b3e8-4e95-afaa-e0d5e4ae5844";
 
 socket.on("connect", () => {
   console.log("✅ Connected to WebSocket");

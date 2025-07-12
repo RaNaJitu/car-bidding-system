@@ -159,6 +159,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RedisService } from 'src/redis/redis.service';
 import { RabbitMQService } from 'src/rabbitmq/rabbitmq.service';
+import Redis from 'ioredis';
 
 @Injectable()
 export class AuctionService {
@@ -168,7 +169,7 @@ export class AuctionService {
     private redisService: RedisService,
     private jwtService: JwtService,
     private rabbitMQService: RabbitMQService,
-  ) {}
+  ) { }
 
   async createAuction(data: {
     carId: string;
@@ -189,10 +190,29 @@ export class AuctionService {
   }
 
   async getAllAuctions() {
-    return this.prisma.auction.findMany({
-      include: { bids: true },
+    const allData = await this.prisma.auction.findMany({
+      include: { bids: true, user: true },
     });
+    console.log("==LOG== ~ AuctionService ~ getAllAuctions ~ allData:", allData)
+    const redisClient = this.redisService.getPublisher();
+  
+    const dataToSend = await Promise.all(
+      allData.map(async (ele: any) => {
+        const redisKey = `auction:${ele.id}:highestBid`;
+        const currentHighestBidStr = await redisClient.get(redisKey);
+        // console.log("==LOG== ~ AuctionService ~ allData.map ~ currentHighestBid:", currentHighestBidStr)
+        const currentHighestBid = currentHighestBidStr ? parseFloat(currentHighestBidStr) : ele.startingBid;
+
+        return {
+          ...ele,
+          currentHighestBid,
+        };
+      })
+    );
+  
+    return dataToSend;
   }
+  
 
   async getAuctionBids(auctionId: string) {
     return this.prisma.bid.findMany({
@@ -207,6 +227,7 @@ export class AuctionService {
   @Cron('*/30 * * * * *')
   async updateAuctionStatus() {
     const now = new Date();
+    console.log("==LOG== ~ AuctionService ~ updateAuctionStatus ~ now:", now)
     console.log('⏰ Running auction scheduler at:', now.toISOString());
 
     // 1. Activate PENDING auctions that have started
@@ -264,7 +285,7 @@ export class AuctionService {
         where: { id: auction.id },
         data: {
           status: AuctionStatus.COMPLETED,
-          winnerId: highestBid?.userId?.toString() ?? null,
+          winnerId: highestBid?.userId ?? null,
         },
       });
 
